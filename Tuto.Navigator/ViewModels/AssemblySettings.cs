@@ -49,14 +49,6 @@ namespace Tuto.Navigator.ViewModels
                 if (AssemblyNeeded)
                     tasks.Add(new AssemblyVideoWork(m));
 
-                if (UploadSelected)
-                {
-                    for (var i = 0; i < m.Montage.Information.Episodes.Count; i++)
-                    {
-                        var episode = m.Locations.GetFinalOutputFile(i);
-                        tasks.Add(new UploadVideoWork(m, true));
-                    }
-                }
                 foreach (var e in tasks)
                     e.Forced = true;
             }

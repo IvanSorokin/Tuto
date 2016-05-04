@@ -48,10 +48,7 @@ namespace Tuto.BatchWorks
 
                 
                 var task = new MoveFile(from, to, model);
-                var youtubeWork = new YoutubeWork(model, episodeNumber, false);
-
                 videoWork.Tasks.Select(x => x as CompositeWork).ElementAt(episodeNumber).Tasks.Add(task);
-                videoWork.Tasks.Select(x => x as CompositeWork).ElementAt(episodeNumber).Tasks.Add(youtubeWork);
             }
         }
     }

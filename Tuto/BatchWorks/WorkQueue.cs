@@ -118,7 +118,6 @@ namespace Tuto.BatchWorks
             if (work.Forced) return true;
             if (work.Finished() && !work.Forced || work.Finished()) return false;
             if (WorkSettings.AudioCleanSettings.CurrentOption == Options.Skip && work is CreateCleanSoundWork) return false;
-            if (!WorkSettings.AutoUploadVideo && (work is UploadVideoWork || work is YoutubeWork)) return false;
             return true;
         }
 

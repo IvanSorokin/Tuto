@@ -23,7 +23,6 @@
                     <CheckBox Content="Repair face video" IsChecked="{Binding PreWorks.RepairFace}"></CheckBox>
                     <CheckBox Content="Repair desktop video" IsChecked="{Binding PreWorks.RepairDesktop}"></CheckBox>
                     <CheckBox Content="Assemble result" IsChecked="{Binding PreWorks.AssemblyNeeded}"></CheckBox>
-                    <CheckBox Content="Upload to youtube" IsChecked="{Binding PreWorks.UploadSelected}"></CheckBox>
                     <CheckBox Content="Make all works" IsChecked="{Binding PreWorks.All}"></CheckBox>
                     <Button Content="Do works" Width="60" Command="{Binding AssembleSelectedWithOptionsCommand}"/>
                 </StackPanel>

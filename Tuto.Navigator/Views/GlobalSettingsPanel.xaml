@@ -58,10 +58,6 @@
                 <CheckBox Grid.Column="0" Grid.Row="5" Grid.ColumnSpan="2" IsChecked="{Binding ShowProcesses}">
                     Show processes window (for debugging purposes only)
                 </CheckBox>
-                
-                <CheckBox Grid.Column="0"  Grid.Row="6" Grid.ColumnSpan="2" IsChecked="{Binding AutoUploadVideo}">
-                    Upload video to Youtube
-                </CheckBox>
             </Grid>
         </GroupBox>
         <GroupBox DataContext="{Binding VoiceSettings}" Header="Sound analysis">

@@ -98,7 +98,6 @@
   <ItemGroup>
     <Compile Include="AssemblerService.cs" />
     <Compile Include="BatchWorks\Converters.cs" />
-    <Compile Include="BatchWorks\UploadVideoWork.cs" />
     <Compile Include="BatchWorks\AtomicAssemblyEpisodeWork.cs" />
     <Compile Include="BatchWorks\AssemblyEpisodeWork.cs" />
     <Compile Include="BatchWorks\AssemblyVideoWork.cs" />
@@ -120,7 +119,6 @@
     <Compile Include="BatchWorks\ProcessBatchWork.cs" />
     <Compile Include="BatchWorks\RepairVideoWork.cs" />
     <Compile Include="BatchWorks\WorkQueue.cs" />
-    <Compile Include="BatchWorks\YoutubeWork.cs" />
     <Compile Include="ConsoleMode\ConsoleLoadingUI.cs" />
     <Compile Include="ConsoleMode\Tuto.Program.cs" />
     <Compile Include="Model\EditorModel\EditorModel.cs" />
