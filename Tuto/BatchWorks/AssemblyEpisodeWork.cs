@@ -12,9 +12,11 @@ namespace Tuto.BatchWorks
 {
     public class AssemblyEpisodeWork : CompositeWork // composite work
     {
+        public int EpisodeNumber;
         public AssemblyEpisodeWork(EditorModel model, EpisodInfo episodeInfo)
         {
             Model = model;
+            EpisodeNumber = model.Montage.Information.Episodes.IndexOf(episodeInfo);
             var videoFile = model.Locations.GetOutputFile(episodeInfo);
             var convertDesktop = new ConvertDesktopWork(model, false);
             var convertFace = new ConvertFaceWork(model, false);

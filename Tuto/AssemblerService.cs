@@ -85,7 +85,7 @@ namespace Tuto.TutoServices
 				AvsNode prevAvsChunk = avsChunks.Items.Count >= 1 ? avsChunks.Items[avsChunks.Items.Count - 1] : AvsNode.NormalizedNode(chunks[0], fps, false, shift);
                 
                 //Оптимизация face-desktop et cetera
-                if (UseChainProcessing)
+                if (UseChainProcessing && IsDifferentMode(chunks[i].Mode, chunks[i+1].Mode) && i < chunks.Count - 1)
                 {
                     var chain = GetChainNodeAndNewIndex(i, chunks, shift, fps);
                     if (chain != null)

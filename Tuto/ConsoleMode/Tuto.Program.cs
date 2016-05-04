@@ -45,6 +45,7 @@ namespace Tuto.ConsoleMode
                 return 1;
             }
             var episode = model.Montage.Information.Episodes.Where(z => z.Guid == guid).FirstOrDefault();
+            var episodeNumber = model.Montage.Information.Episodes.IndexOf(episode);
 
             var work = new AssemblyEpisodeWork(model, episode);
 
