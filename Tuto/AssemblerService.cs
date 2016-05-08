@@ -100,17 +100,29 @@ namespace Tuto.TutoServices
                 avsChunks.Items.Add(AvsNode.NormalizedNode(e, 25, false, syncShift));
             }
 
+            var patchNode = new AvsPatchChunk();
+            var tempNode = new AvsConcatList() { Items = new List<AvsNode>() };
+            patchNode.Load((patch.VideoData as VideoFilePatch).GetTempName(m).FullName);
 
             if (patch.VideoData.OverlayType == VideoPatchOverlayType.Replace)
-            {
-                var patchNode = new AvsPatchChunk();
-                patchNode.Load((patch.VideoData as VideoFilePatch).GetTempName(m).FullName);
-                var tempNode  = new AvsConcatList() { Items = new List<AvsNode>() };
+            {              
                 tempNode.Items.Add(new AvsChunk() { Chunk = firstPart});
                 tempNode.Items.Add(patchNode);
                 tempNode.Items.Add(new AvsChunk() { Chunk = endPart });
                 resultNode = tempNode;
             }
+
+            if (patch.VideoData.OverlayType == VideoPatchOverlayType.KeepSoundAddSilence)
+            {
+                tempNode.Items.Add(new AvsChunk() { Chunk = firstPart });
+
+                var mix = new AvsMix() { First = patchNode, Second = avsChunks, SyncShift = syncShift };
+                tempNode.Items.Add(mix);
+
+                tempNode.Items.Add(new AvsChunk() { Chunk = endPart });
+                resultNode = tempNode;
+            }
+
 
             return Tuple.Create(resultNode, newIndex);
             //for both of them include firstPart and endPart
