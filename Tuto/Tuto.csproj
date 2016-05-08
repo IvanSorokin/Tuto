@@ -103,6 +103,7 @@
     <Compile Include="BatchWorks\AssemblyVideoWork.cs" />
     <Compile Include="BatchWorks\BatchWork.cs" />
     <Compile Include="BatchWorks\ConvertDesktopWork.cs" />
+    <Compile Include="BatchWorks\ConvertPatchWork.cs" />
     <Compile Include="BatchWorks\ConvertFaceWork.cs" />
     <Compile Include="BatchWorks\ConvertVideoWork.cs" />
     <Compile Include="BatchWorks\CreateCleanSoundWork.cs" />

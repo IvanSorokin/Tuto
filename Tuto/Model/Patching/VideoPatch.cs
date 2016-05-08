@@ -35,7 +35,13 @@ namespace Tuto.Model
         public override FileInfo GetFileName(Videotheque v)
         {
             return new FileInfo(Path.Combine(v.PatchFolder.FullName, RelativeFileName));
-        } 
+        }
+
+        public FileInfo GetTempName(EditorModel m)
+        {
+            var name = RelativeFileName.Split('.')[0] + "-converted.avi";
+            return new FileInfo(Path.Combine(m.TempFolder.FullName, name));
+        }
     }
 
 

@@ -51,80 +51,105 @@ namespace Tuto.BatchWorks
         {
             var src = pmodel.SourceInfo;
             List<AvsNode> chunks = new List<AvsNode>();
+
+
             var tracks = pmodel.MediaTracks.OrderBy(x => x.LeftShiftInSeconds).ToList();
-            oldName = pmodel.SourceInfo.FullName;
-            newName = Path.Combine(pmodel.SourceInfo.Directory.FullName, Guid.NewGuid().ToString() + ".avi");
-            File.Move(oldName, newName);
+            int episodeNumber = 0;
+            var episode = Model.Montage.Information.Episodes[episodeNumber];
+            List<Tuple<double, double, Patch>> dump = new List<Tuple<double, double, Patch>>(); // things for concat list
+            var episodeDuration = episode.Duration.TotalSeconds;
+            double startLength = 0;
 
-            double previous = 0;
-            int index = 0;
-            string mode = "main";
-            while (Math.Abs(previous - pmodel.Duration) >= 0.5 && tracks.Count != 0)
+            for (var i = 0; i < episodeNumber; i++)
             {
-                var avs = new AvsPatchChunk();
-                if (mode == "main")
+                startLength += Model.Montage.Information.Episodes[i].Duration.TotalSeconds;
+            }
+
+
+            var tr = Model.Montage.Patches
+                .OrderBy(x => x.Begin)
+                .ToList(); //FILTER FOR EPISODE NOT FOUND!
+
+
+            for (var i = 0; i < tr.Count; i++)
+            {
+                var trueBegin = tr[i].Begin - startLength;
+                var trueEnd = tr[i].End - startLength;
+                dump.Add(new Tuple<double, double, Patch>(trueBegin, trueEnd , tr[i])); //from patch
+
+                if (i == 0 && trueBegin > 0)
+                    dump.Add(new Tuple<double, double, Patch>(0, trueBegin, null)); // from main
+
+                if (i < tr.Count - 1)
                 {
-                    var endTime = index >= tracks.Count ? pmodel.Duration : tracks[index].StartSecond + tracks[index].LeftShiftInSeconds;
-                    avs.Load(newName, previous, endTime);
-                    previous = endTime;
-                    chunks.Add(avs);
-                    mode = "patch";
-                    continue;
+                    var nextTrueBegin = tr[i + 1].Begin - startLength;
+                    var nextTrueEnd = tr[i + 1].End - startLength;
+                    if (nextTrueBegin - trueEnd > 1)
+                        dump.Add(new Tuple<double, double, Patch>(trueEnd, nextTrueBegin, null)); //from main
                 }
-                var name = tracks[index].IsTutoPatch ? tracks[index].Path.LocalPath : Path.Combine(Model.Locations.TemporalDirectory.FullName, tracks[index].FullName.Name);
-                avs.Load(name, tracks[index].StartSecond, tracks[index].EndSecond);
-                chunks.Add(avs);
-                previous = tracks[index].EndSecond + tracks[index].LeftShiftInSeconds;
-                index++;
-                mode = "main";
             }
+            if (Math.Abs(tr[tr.Count - 1].End - startLength - episodeDuration) > 1)
+                dump.Add(new Tuple<double, double, Patch>(tr[tr.Count - 1].End - startLength, episodeDuration, null)); //lastmain if exist
 
-            if (tracks.Count == 0)
-            {
-                var s = new AvsPatchChunk();
-                s.Load(newName, 0, pmodel.Duration);
-                chunks.Add(s);
-            }
 
-            var final = new AvsConcatList();
-            final.Items = chunks;
-            var avsContext = new AvsContext();
 
-            AvsNode payload = final;
-            if (pmodel.Subtitles.Count > 0)
-            {
-                var currentSub = new AvsSub();
-                foreach (var sub in pmodel.Subtitles)
-                {
-                    currentSub = new AvsSub();
-                    currentSub.Payload = payload;
-                    currentSub.X = (int)(sub.Pos.X * pmodel.Width / pmodel.ActualWidth);
-                    currentSub.Y = (int)(sub.Pos.Y * pmodel.Height / pmodel.ActualHeight + sub.HeightShift);
-                    currentSub.Start = sub.LeftShiftInSeconds;
-                    currentSub.End = sub.LeftShiftInSeconds + sub.EndSecond - sub.StartSecond;
-                    currentSub.Content = sub.Content;
-                    currentSub.FontSize = (sub.FontSize * pmodel.FontCoefficent).ToString();
-                    currentSub.Stroke = sub.Stroke;
-                    currentSub.Foreground = sub.Foreground;
-                    payload = currentSub;
-                }
-                currentSub.SerializeToContext(avsContext);
-            }
-            else final.SerializeToContext(avsContext);
+            //oldName = pmodel.SourceInfo.FullName;
+            //newName = Path.Combine(pmodel.SourceInfo.Directory.FullName, Guid.NewGuid().ToString() + ".avi");
+            //File.Move(oldName, newName);
 
-            var args = @"-i ""{0}"" -q:v 0 -vf ""scale=1280:720, fps=25"" -q:v 0 -acodec libmp3lame -ar 44100 -ab 32k ""{1}"" -y";
+            //double previous = 0;
+            //int index = 0;
+            //string mode = "main";
 
-            var avsScript = string.Format(@"import(""{0}"")", Model.Locations.AvsLibrary.FullName) + "\r\n" + avsContext.GetContent() + "var_0";
-            File.WriteAllText(newName + "test.avs", avsScript, Encoding.GetEncoding("Windows-1251"));
 
-            //Патчер в аутпут все делает
-            var scriptFile = newName + "test.avs";
-            var path = Model.Locations.GetFinalOutputFile(pmodel.EpisodeNumber).FullName;
-            args = string.Format(args, scriptFile , path);
-            RunProcess(args, Model.Videotheque.Locations.FFmpegExecutable.FullName);
-            File.Delete(scriptFile);
-            OnTaskFinished();
-            File.Move(newName, oldName);
+            //while (Math.Abs(previous - pmodel.Duration) >= 0.5 && tracks.Count != 0)
+            //{
+            //    var avs = new AvsPatchChunk();
+            //    if (mode == "main")
+            //    {
+            //        var endTime = index >= tracks.Count ? pmodel.Duration : tracks[index].StartSecond + tracks[index].LeftShiftInSeconds;
+            //        avs.Load(newName, previous, endTime);
+            //        previous = endTime;
+            //        chunks.Add(avs);
+            //        mode = "patch";
+            //        continue;
+            //    }
+            //    var name = tracks[index].IsTutoPatch ? tracks[index].Path.LocalPath : Path.Combine(Model.Locations.TemporalDirectory.FullName, tracks[index].FullName.Name);
+            //    avs.Load(name, tracks[index].StartSecond, tracks[index].EndSecond);
+            //    chunks.Add(avs);
+            //    previous = tracks[index].EndSecond + tracks[index].LeftShiftInSeconds;
+            //    index++;
+            //    mode = "main";
+            //}
+
+            //if (tracks.Count == 0)
+            //{
+            //    var s = new AvsPatchChunk();
+            //    s.Load(newName, 0, pmodel.Duration);
+            //    chunks.Add(s);
+            //}
+
+            //var final = new AvsConcatList();
+            //final.Items = chunks;
+            //var avsContext = new AvsContext();
+
+            //AvsNode payload = final;
+
+            //final.SerializeToContext(avsContext);
+
+            //var args = @"-i ""{0}"" -q:v 0 -vf ""scale=1280:720, fps=25"" -q:v 0 -acodec libmp3lame -ar 44100 -ab 32k ""{1}"" -y";
+
+            //var avsScript = string.Format(@"import(""{0}"")", Model.Locations.AvsLibrary.FullName) + "\r\n" + avsContext.GetContent() + "var_0";
+            //File.WriteAllText(newName + "test.avs", avsScript, Encoding.GetEncoding("Windows-1251"));
+
+            ////Патчер в аутпут все делает
+            //var scriptFile = newName + "test.avs";
+            //var path = Model.Locations.GetFinalOutputFile(pmodel.EpisodeNumber).FullName;
+            //args = string.Format(args, scriptFile , path);
+            //RunProcess(args, Model.Videotheque.Locations.FFmpegExecutable.FullName);
+            //File.Delete(scriptFile);
+            //OnTaskFinished();
+            //File.Move(newName, oldName);
         }
 
         public override void Clean()
