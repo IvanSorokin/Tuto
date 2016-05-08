@@ -9,16 +9,12 @@ namespace Tuto.TutoServices.Assembler
 {
     public class AvsPatchChunk : AvsNode
     {
-        public double Start { get; set; }
-        public double End { get; set; }
         public string Path { get; set; }
         public int ConvertToFps { get; set; }
 
-        public void Load(string path, double start, double end)
+        public void Load(string path)
         {
-            Start = start;
             Path = path;
-            End = end;
         }
         public override void SerializeToContext(AvsContext context)
         {
@@ -38,9 +34,7 @@ namespace Tuto.TutoServices.Assembler
                 var clip = string.Format("DirectShowSource(\"{0}\")", Path);
                 var frameRate = 25;
                 var conv = "Time2Frame({0}, {1})";
-                var startTime = string.Format(conv, clip, Start);
-                var endTime = string.Format(conv, clip, End);
-                var final = string.Format("AddEmptySoundIfNecessary(DirectShowSource(\"{0}\").Trim({1},{2}))", Path, (int)(Start * frameRate), (int)(End * frameRate));
+                var final = string.Format("AddEmptySoundIfNecessary(DirectShowSource(\"{0}\"))", Path);
                 return "{0} = " + final; 
             }
         }

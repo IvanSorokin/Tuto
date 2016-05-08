@@ -19,7 +19,7 @@ namespace Tuto.BatchWorks
             var videoWork = new AssemblyVideoWork(model);
             Tasks.Add(videoWork);
             var serv = new AssemblerService(true);
-            var episodes = serv.GetEpisodesNodes(model);
+            var episodes = model.Montage.Information.Episodes;
 
             //с эпизодами надо что-то решить, в силу того, что эпизодинфо не знает нужной инфы, другого выхода не вижу
             //мы это уже обсуждали, но так и не пришли ни к чему ((
@@ -29,16 +29,6 @@ namespace Tuto.BatchWorks
                 if (model.Montage.Information.Episodes[episodeNumber].OutputType == OutputTypes.None)
                     continue;
 
-                //if (model.Montage.Information.Episodes[episodeNumber].PatchModel != null)
-                //{
-                //    BeforeWorks.Add(new PatchWork(model.Montage.Information.Episodes[episodeNumber].PatchModel,
-                //                                  model.Videotheque.Data.EditorSettings.CrossFadesEnabled,
-                //                                  model,
-                //                                  true));
-                //    var patchedLocation = model.Locations.GetFinalOutputFile(episodeNumber);
-                //    AfterWorks.Add(new YoutubeWork(model, episodeNumber, patchedLocation));
-                //    continue;
-                //}
 
                 var from = model.Locations.GetOutputFile(episodeNumber);
                 var to = model.Locations.GetFinalOutputFile(episodeNumber);

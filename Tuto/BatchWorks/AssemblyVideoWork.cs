@@ -17,7 +17,7 @@ namespace Tuto.BatchWorks
             Model = model;
             Name = "Assembling video: " + model.RawLocation.Name;
             var service = new AssemblerService(model.Videotheque.Data.EditorSettings.CrossFadesEnabled);
-            var episodes = service.GetEpisodesNodes(Model);
+            var episodes = model.Montage.Information.Episodes;
 
             Model.Montage.Patches.Where(x => x.IsVideoPatch).ToList().ForEach(x => {
             var work = new ConvertPatchWork(model, false, x);
