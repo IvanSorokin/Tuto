@@ -95,32 +95,32 @@ namespace Tuto.TutoServices
                 }
             }
 
-            var lastActiveEndTime = chunks[chunks.Count - 2].EndTime;
-            var layer = new AvsChunk() { Chunk = new StreamChunk(patch.Begin, Math.Min(patch.End, lastActiveEndTime), Mode.Face, false) };
-
             var patchNode = new AvsPatchChunk();
             var tempNode = new AvsConcatList() { Items = new List<AvsNode>() };
             patchNode.Load((patch.VideoData as VideoFilePatch).GetTempName(m).FullName);
 
             if (patch.VideoData.OverlayType == VideoPatchOverlayType.Replace)
-            {              
-                tempNode.Items.Add(new AvsChunk() { Chunk = firstPart});
+            {
+                tempNode.Items.Add(new AvsChunk() { Chunk = firstPart });
                 tempNode.Items.Add(patchNode);
                 if (endPart.IsActive)
                     tempNode.Items.Add(new AvsChunk() { Chunk = endPart });
                 resultNode = tempNode;
             }
-
-            if (patch.VideoData.OverlayType == VideoPatchOverlayType.KeepSoundAddSilence)
+            else
             {
+                var lastActiveEndTime = chunks[chunks.Count - 2].EndTime;
+                var layer = new AvsChunk() { Chunk = new StreamChunk(patch.Begin, Math.Min(patch.End, lastActiveEndTime), Mode.Face, false) };
+                if (patch.VideoData.OverlayType == VideoPatchOverlayType.KeepSoundTruncateVideo)
+                    patchNode.EndTime = Math.Min(patch.End, lastActiveEndTime) - patch.Begin;
                 tempNode.Items.Add(new AvsChunk() { Chunk = firstPart });
-
                 var mix = new AvsMix() { First = patchNode, Second = layer, SyncShift = syncShift };
                 tempNode.Items.Add(mix);
                 if (endPart.IsActive)
                     tempNode.Items.Add(new AvsChunk() { Chunk = endPart });
                 resultNode = tempNode;
             }
+
             return Tuple.Create(resultNode, newIndex);
         }
 

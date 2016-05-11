@@ -12,6 +12,12 @@ namespace Tuto.TutoServices.Assembler
 {
     public abstract class AvsNode
     {
+        private int fixedFps = 25;
+        public int Time2Frame(double time)
+        {
+            return (int)(time / 1000 * fixedFps);
+        }
+
         public abstract void SerializeToContext(AvsContext context);
 
         public abstract IList<AvsNode> ChildNodes { get; }

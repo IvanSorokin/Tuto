@@ -11,7 +11,7 @@ namespace Tuto.TutoServices.Assembler
     {
         public StreamChunk Chunk { get; set; }
         public int ConvertToFps { get; set; }
-        private int fixedFps = 25;
+        
 
         public override void SerializeToContext(AvsContext context)
         {
@@ -26,10 +26,7 @@ namespace Tuto.TutoServices.Assembler
             get { return new AvsNode[] {}; }
         }
 
-        private int Time2Frame(double time)
-        {
-            return (int)(time / 1000 * fixedFps);
-        }
+        
 
         protected override string Format 
         {
