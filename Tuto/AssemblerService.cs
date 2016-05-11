@@ -124,6 +124,36 @@ namespace Tuto.TutoServices
             return Tuple.Create(resultNode, newIndex);
         }
 
+        private AvsContext ApplySubtitles(EditorModel m, AvsContext context, AvsNode payload)
+        {
+            var hasSubtitles = m.Montage.Patches.Any(x => x.)
+
+            if (hasSubtitles.Count > 0)
+            {
+                var currentSub = new AvsSub();
+                foreach (var sub in m.Montage.Patches)
+                {
+                    if (sub.Data as SubtitlePatch != null)
+                    {
+                        currentSub = new AvsSub();
+                        currentSub.Payload = payload;
+                        currentSub.X = 0;
+                        currentSub.Y = 0;
+                        currentSub.Start = sub.Begin;
+                        currentSub.End = sub.End;
+                        currentSub.Content = (sub.Data as SubtitlePatch).Text;
+                        currentSub.FontSize = "12";
+                        currentSub.Stroke = "2";
+                        currentSub.Foreground = "Black";
+                        payload = currentSub;
+                    }
+                }
+                currentSub.SerializeToContext(context);
+            }
+
+            return context;
+        }
+
         private bool UseChainProcessing = true;
 
 		private AvsNode MakeEpisode(EditorModel model, EpisodesChunks episode)
@@ -133,6 +163,7 @@ namespace Tuto.TutoServices
 			var fps = 25;
 			var shift = model.Montage.SynchronizationShift;
             var patches = model.Montage.Patches.Where(x => x.IsVideoPatch).OrderBy(x => x.Begin).ToList();
+
 			var currentChunk = chunks[0];
 			//making cross-fades and merging
 			for (int i = 0; i < chunks.Count; i++)
@@ -145,11 +176,11 @@ namespace Tuto.TutoServices
                     i = res.Item2;
                     patches.RemoveAt(0);
                     continue;
-
                 }
 
 				if (chunks[i].IsNotActive)
 					continue;
+
 				var prevChunk = i >= 1 ? currentChunk : null;
 				currentChunk = chunks[i];
 				AvsNode currentAvsChunk = AvsNode.NormalizedNode(currentChunk, fps, currentChunk.Mode == Mode.Face, shift);
