@@ -32,15 +32,25 @@ namespace Tuto.TutoServices
 			return firstVar || secondVar;
 		}
 
-		private Tuple<AvsNode, int> GetChainNodeAndNewIndex(int index, List<StreamChunk> initialChunks, int shift, int fps)
+        private bool IntersectedWithPatch(EditorModel m, StreamChunk chunk)
+        {
+            var patches = m.Montage.Patches.Where(x => x.IsVideoPatch);
+            foreach (var e in patches)
+                if (e.Begin >= chunk.StartTime && e.Begin <= chunk.EndTime)
+                    return true;
+            return false;
+        }
+
+		private Tuple<AvsNode, int> GetChainNodeAndNewIndex(int index, List<StreamChunk> initialChunks, int shift, int fps, EditorModel m)
 		{
+            //ADD PATCH CHECK INTERSECTION
 			var finalChunks = new List<StreamChunk>();
 			finalChunks.Add(initialChunks[index]);
 			for (var i = index; i < initialChunks.Count - 1; i++)
 			{
 				var currentChunk = initialChunks[i];
 				var nextChunk = initialChunks[i + 1];
-				if (initialChunks[i].IsActive && IsDifferentMode(currentChunk.Mode, nextChunk.Mode))
+				if (currentChunk.IsActive && IsDifferentMode(currentChunk.Mode, nextChunk.Mode) && !IntersectedWithPatch(m, nextChunk))
 				{
 					finalChunks.Add(nextChunk);
 				}
@@ -54,9 +64,8 @@ namespace Tuto.TutoServices
 					foreach (var e in finalChunks)
 						videoChunk.Items.Add(AvsNode.NormalizedNode(e, fps, currentChunk.Mode == Mode.Face, shift));
 					var startTime = finalChunks[0].StartTime;
-					var startLength = finalChunks[0].Length;
-					var length = startTime + finalChunks.Select(x => x.Length).Sum();
-					var audioChunk = new StreamChunk(startTime, length, Mode.Face, currentChunk.Mode == Mode.Face);
+					var endTime = startTime + finalChunks.Select(x => x.Length).Sum();
+					var audioChunk = new StreamChunk(startTime, endTime, Mode.Face, currentChunk.Mode == Mode.Face);
 					AvsNode audioAvsChunk = AvsNode.NormalizedNode(audioChunk, fps, currentChunk.Mode == Mode.Face, shift);
 					AvsMix mix = new AvsMix();
 					mix.First = videoChunk;
@@ -68,37 +77,26 @@ namespace Tuto.TutoServices
 			return null;
 		}
 
-        //to insert in streamchunks, to insert in currentAvsChunk, new index
+        // to insert in currentAvsChunk, new index
         private Tuple<AvsNode, int> ApplyPatch(int index, Patch patch, List<StreamChunk> chunks, int syncShift, EditorModel m)
         {
-
-            
-
             var firstPart = new StreamChunk(chunks[index].StartTime, patch.Begin, chunks[index].Mode, false);
             StreamChunk endPart = new StreamChunk(0,0, Mode.Desktop, false);
             AvsNode resultNode = new AvsChunk();
 
-            var secondPart = new StreamChunk(patch.Begin, chunks[index].EndTime, chunks[index].Mode, false);
-            var temp = new List<StreamChunk>(); //layer for patch
-            temp.Add(secondPart);
+            var tempLayer = new List<StreamChunk>(); //layer for patch
             var newIndex = index;
             for (; newIndex < chunks.Count; newIndex++)
             {
-                if (chunks[newIndex].EndTime < patch.End)
-                    temp.Add(chunks[newIndex]);
-                else
+                if (!(chunks[newIndex].EndTime < patch.End))
                 {
-                    temp.Add(new StreamChunk(chunks[newIndex].StartTime, chunks[newIndex].StartTime + chunks[newIndex].EndTime - patch.End, chunks[newIndex].Mode, false));
                     endPart = new StreamChunk(patch.End, chunks[newIndex].EndTime, chunks[newIndex].Mode, false);
                     break;
                 }
             }
 
-            var avsChunks = new AvsConcatList() { Items = new List<AvsNode>() }; //avs layer
-            foreach( var e in temp)
-            {
-                avsChunks.Items.Add(AvsNode.NormalizedNode(e, 25, false, syncShift));
-            }
+            var lastActiveEndTime = chunks[chunks.Count - 2].EndTime;
+            var layer = new AvsChunk() { Chunk = new StreamChunk(patch.Begin, Math.Min(patch.End, lastActiveEndTime), Mode.Face, false) };
 
             var patchNode = new AvsPatchChunk();
             var tempNode = new AvsConcatList() { Items = new List<AvsNode>() };
@@ -108,7 +106,8 @@ namespace Tuto.TutoServices
             {              
                 tempNode.Items.Add(new AvsChunk() { Chunk = firstPart});
                 tempNode.Items.Add(patchNode);
-                tempNode.Items.Add(new AvsChunk() { Chunk = endPart });
+                if (endPart.IsActive)
+                    tempNode.Items.Add(new AvsChunk() { Chunk = endPart });
                 resultNode = tempNode;
             }
 
@@ -116,22 +115,16 @@ namespace Tuto.TutoServices
             {
                 tempNode.Items.Add(new AvsChunk() { Chunk = firstPart });
 
-                var mix = new AvsMix() { First = patchNode, Second = avsChunks, SyncShift = syncShift };
+                var mix = new AvsMix() { First = patchNode, Second = layer, SyncShift = syncShift };
                 tempNode.Items.Add(mix);
-
-                tempNode.Items.Add(new AvsChunk() { Chunk = endPart });
+                if (endPart.IsActive)
+                    tempNode.Items.Add(new AvsChunk() { Chunk = endPart });
                 resultNode = tempNode;
             }
-
-
             return Tuple.Create(resultNode, newIndex);
-            //for both of them include firstPart and endPart
-            //for replace
-            //for keepSoundTruncateVideo
-            //for keepSoundAddsilence
         }
 
-        private bool UseChainProcessing = false;
+        private bool UseChainProcessing = true;
 
 		private AvsNode MakeEpisode(EditorModel model, EpisodesChunks episode)
 		{
@@ -144,7 +137,8 @@ namespace Tuto.TutoServices
 			//making cross-fades and merging
 			for (int i = 0; i < chunks.Count; i++)
 			{
-                if (patches.Count != 0 && patches[0].Begin >= chunks[i].StartTime && chunks[i].EndTime >= patches[0].Begin)
+                //PATCHES ARE NOT READY YET! WORK IS IN PROGRESS!
+                if (patches.Count != 0 && patches[0].Begin >= chunks[i].StartTime && patches[0].Begin <= chunks[i].EndTime )
                 {
                     var res = ApplyPatch(i, patches[0], chunks, shift, model);
                     avsChunks.Items.Add(res.Item1);
@@ -164,7 +158,7 @@ namespace Tuto.TutoServices
                 //Оптимизация face-desktop et cetera
                 if (UseChainProcessing)
                 {
-                    var chain = GetChainNodeAndNewIndex(i, chunks, shift, fps);
+                    var chain = GetChainNodeAndNewIndex(i, chunks, shift, fps, model);
                     if (chain != null)
                     {
                         currentAvsChunk = chain.Item1;
@@ -182,6 +176,8 @@ namespace Tuto.TutoServices
 					if (currentChunk.IsActive)
 						avsChunks.Items.Add(currentAvsChunk);
 				currentChunk = chunks[i];
+                if (currentChunk.IsNotActive)
+                    throw new ArgumentException("!!!");
 			}
 
 			// intro with fadein and fadeout

@@ -286,6 +286,7 @@ namespace Tuto.Model
 
             if(!activeChunks.Any())
                 return;
+
             activeChunks.Add(new StreamChunk(activeChunks.Last().EndTime,activeChunks.Last().EndTime,Mode.Undefined,true));
             var oldChunk = activeChunks[0];
             for (var i = 1; i < activeChunks.Count; i++)
@@ -297,7 +298,7 @@ namespace Tuto.Model
                 if (!currentChunk.StartsNewEpisode && currentChunk.Mode == oldChunk.Mode)
                     continue;
                 // or flush adjacent chunks into one and start new sequence
-                if (oldChunk.Length != 0)
+                if (oldChunk.Length != 0 || oldChunk.Mode == Mode.Drop)
                 {
                     var preparedChunk = new StreamChunk(
                         oldChunk.StartTime,
