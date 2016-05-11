@@ -15,7 +15,7 @@ namespace Tuto.BatchWorks
         private List<string> filesToDelIfAborted { get; set; }
         private EpisodInfo episodeInfo { get; set; }
         private int episodeNumber { get; set; }
-        private AvsNode episodeNode { get; set; }
+        private AvsContext avsContext { get; set; }
 
         public AtomicAssemblyEpisodeWork(EditorModel model, EpisodInfo episodeInfo)
         {
@@ -25,14 +25,12 @@ namespace Tuto.BatchWorks
             this.episodeInfo = episodeInfo;
             this.episodeNumber = Model.Montage.Information.Episodes.IndexOf(episodeInfo);
             filesToDelIfAborted = new List<string>();
-            episodeNode = new AssemblerService(model.Videotheque.Data.EditorSettings.CrossFadesEnabled).GetEpisodesNodes(model)[episodeNumber];
+            avsContext = new AssemblerService(model.Videotheque.Data.EditorSettings.CrossFadesEnabled).GetEpisodesNodes(model)[episodeNumber];
         }
 
         public override void Work()
         {
             var args = @"-i ""{0}"" -q:v 0 -vf ""scale=1280:720, fps=25"" -q:v 0 -acodec libmp3lame -ac 2 -ar 44100 -ab 32k ""{1}""";
-            var avsContext = new AvsContext();
-            episodeNode.SerializeToContext(avsContext);
             var avsScript = avsContext.Serialize(Model);
             var avsFile = Model.Locations.GetAvsStriptFile(episodeNumber);
 

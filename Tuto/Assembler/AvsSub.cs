@@ -22,7 +22,9 @@ namespace Tuto.TutoServices.Assembler
         {
             base.id = context.Id;
             Payload.SerializeToContext(context);
-            var script = string.Format(@"{0} = {1}.Subtitle(""{2}"", x={3}, y={4}, first_frame={5}, last_frame={6}, size={7}, text_color=color_{8}, halo_color=color_{9})", Id, Payload.Id, Content, X, Y, (int)(Start * 25), (int)(End * 25), (int)double.Parse(FontSize), Foreground, Stroke);
+            var startTime = Time2Frame(Start);
+            var endTime = Time2Frame(End);
+            var script = string.Format(@"{0} = {1}.Subtitle(""{2}"", x={3}, y={4}, first_frame={5}, last_frame={6}, size={7}, text_color=color_{8}, halo_color=color_{9})", Id, Payload.Id, Content, X, Y, startTime, endTime, (int)double.Parse(FontSize), Foreground, Stroke);
             context.AddData(script);
         }
 

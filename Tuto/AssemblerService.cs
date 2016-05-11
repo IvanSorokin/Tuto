@@ -18,7 +18,7 @@ namespace Tuto.TutoServices
 		}
 		
 
-		public List<AvsNode> GetEpisodesNodes(EditorModel model)
+		public List<AvsContext> GetEpisodesNodes(EditorModel model)
 		{
 			model.FormPreparedChunks();
             var episodes = ListEpisodes(model.Montage.PreparedChunks).Select(e => MakeEpisode(model, e)).ToList();
@@ -124,39 +124,41 @@ namespace Tuto.TutoServices
             return Tuple.Create(resultNode, newIndex);
         }
 
-        private AvsContext ApplySubtitles(EditorModel m, AvsContext context, AvsNode payload)
+        private void ApplySubtitles(EditorModel m, AvsContext context, AvsNode payload, List<StreamChunk> chunks)
         {
-            var hasSubtitles = m.Montage.Patches.Any(x => x.)
+            Func<Func<StreamChunk,bool>,double> countTime = f => chunks
+                        .Where(x => x.Mode == Mode.Drop)
+                        .Where(f)
+                        .Select(x => x.Length)
+                        .Sum();
 
-            if (hasSubtitles.Count > 0)
+            var currentSub = new AvsSub();
+            foreach (var sub in m.Montage.Patches)
             {
-                var currentSub = new AvsSub();
-                foreach (var sub in m.Montage.Patches)
+                if (sub.Data as SubtitlePatch != null)
                 {
-                    if (sub.Data as SubtitlePatch != null)
-                    {
-                        currentSub = new AvsSub();
-                        currentSub.Payload = payload;
-                        currentSub.X = 0;
-                        currentSub.Y = 0;
-                        currentSub.Start = sub.Begin;
-                        currentSub.End = sub.End;
-                        currentSub.Content = (sub.Data as SubtitlePatch).Text;
-                        currentSub.FontSize = "12";
-                        currentSub.Stroke = "2";
-                        currentSub.Foreground = "Black";
-                        payload = currentSub;
-                    }
-                }
-                currentSub.SerializeToContext(context);
-            }
+                    var dropTimeStart = countTime(x => x.EndTime <= sub.Begin);
+                    var dropTimeEnd = countTime(x => x.EndTime <= sub.End && x.StartTime >= sub.Begin);
 
-            return context;
+                    currentSub = new AvsSub();
+                    currentSub.Payload = payload;
+                    currentSub.X = 0;
+                    currentSub.Y = 0;
+                    currentSub.Start = sub.Begin - dropTimeStart;
+                    currentSub.End = sub.End - dropTimeEnd;
+                    currentSub.Content = (sub.Data as SubtitlePatch).Text;
+                    currentSub.FontSize = "20";
+                    currentSub.Stroke = "White";
+                    currentSub.Foreground = "Black";
+                    payload = currentSub;
+                }
+            }
+            currentSub.SerializeToContext(context);
         }
 
         private bool UseChainProcessing = true;
 
-		private AvsNode MakeEpisode(EditorModel model, EpisodesChunks episode)
+		private AvsContext MakeEpisode(EditorModel model, EpisodesChunks episode)
 		{
 			var chunks = episode.chunks;
 			var avsChunks = new AvsConcatList { Items = new List<AvsNode>() };
@@ -211,45 +213,19 @@ namespace Tuto.TutoServices
                     throw new ArgumentException("!!!");
 			}
 
-			// intro with fadein and fadeout
-			//var intro = new AvsIntro
-			//{
-			//    VideoReference = model.Locations.Make(model.ChunkFolder, fileChunks[0].ChunkFilename),
-			//    ImageFile = model.Locations.IntroImage
-			//};
-			//var normalizedIntro = AvsNode.NormalizedNode(intro);
-			//var fadedIntro = new AvsFadeIn {Payload = new AvsFadeOut {Payload = normalizedIntro}};
-			//avsChunks.Items.Insert(0, fadedIntro);
-
-			// fadeout last item
 			avsChunks.Items[avsChunks.Items.Count - 1] = new AvsFadeOut { Payload = avsChunks.Items[avsChunks.Items.Count - 1] };
 
-			//AvsNode resultedAvs = avsChunks;
-			//if (!string.IsNullOrEmpty(File.ReadAllText(model.Locations.GetSrtFile(episode.episodeNumber).FullName)))
-			//{
-			//    resultedAvs = new AvsSubtitle { SrtPath = model.Locations.GetSrtFile(episode.episodeNumber).FullName, Payload = avsChunks };
-			//}
+            var avsContext = new AvsContext();
 
+            var hasSubtitles = model.Montage.Patches.Any(x => (x.Data as SubtitlePatch) != null);
+            if (hasSubtitles)
+            {
+               ApplySubtitles(model, avsContext, avsChunks, chunks);
+            }
+            else
+                avsChunks.SerializeToContext(avsContext);
 
-			// autolevel
-			// ???
-
-			return avsChunks;
-
-			// watermark
-			//return new AvsWatermark
-			//{
-			//    Payload = avsChunks,
-			//    ImageFile = model.Locations.WatermarkImage
-			//};
-
-			/*
-			 * add intro
-			 * make crossfades
-			 * add fadein/fadeout
-			 * add autolevel?
-			 * add watermark
-			 */
+            return avsContext;
 		}
 
 
