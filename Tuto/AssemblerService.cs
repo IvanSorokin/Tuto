@@ -127,8 +127,7 @@ namespace Tuto.TutoServices
         private void ApplySubtitles(EditorModel m, AvsContext context, AvsNode payload, List<StreamChunk> chunks)
         {
             Func<Func<StreamChunk,bool>,double> countTime = f => chunks
-                        .Where(x => x.Mode == Mode.Drop)
-                        .Where(f)
+                        .Where(x => x.Mode == Mode.Drop && f(x))
                         .Select(x => x.Length)
                         .Sum();
 
