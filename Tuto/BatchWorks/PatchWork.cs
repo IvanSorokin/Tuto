@@ -91,7 +91,31 @@ namespace Tuto.BatchWorks
             if (Math.Abs(tr[tr.Count - 1].End - startLength - episodeDuration) > 1)
                 dump.Add(new Tuple<double, double, Patch>(tr[tr.Count - 1].End - startLength, episodeDuration, null)); //lastmain if exist
 
+            var final = new AvsConcatList();
+            final.Items = chunks;
+            var avsContext = new AvsContext();
 
+            AvsNode payload = final;
+            if (pmodel.Subtitles.Count > 0)
+            {
+                var currentSub = new AvsSub();
+                foreach (var sub in pmodel.Subtitles)
+                {
+                    currentSub = new AvsSub();
+                    currentSub.Payload = payload;
+                    currentSub.X = (int)(sub.Pos.X * pmodel.Width / pmodel.ActualWidth);
+                    currentSub.Y = (int)(sub.Pos.Y * pmodel.Height / pmodel.ActualHeight + sub.HeightShift);
+                    currentSub.Start = sub.LeftShiftInSeconds;
+                    currentSub.End = sub.LeftShiftInSeconds + sub.EndSecond - sub.StartSecond;
+                    currentSub.Content = sub.Content;
+                    currentSub.FontSize = (sub.FontSize * pmodel.FontCoefficent).ToString();
+                    currentSub.Stroke = sub.Stroke;
+                    currentSub.Foreground = sub.Foreground;
+                    payload = currentSub;
+                }
+                currentSub.SerializeToContext(avsContext);
+            }
+            else final.SerializeToContext(avsContext);
 
             //oldName = pmodel.SourceInfo.FullName;
             //newName = Path.Combine(pmodel.SourceInfo.Directory.FullName, Guid.NewGuid().ToString() + ".avi");

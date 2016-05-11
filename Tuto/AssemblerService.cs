@@ -132,7 +132,7 @@ namespace Tuto.TutoServices
 			var avsChunks = new AvsConcatList { Items = new List<AvsNode>() };
 			var fps = 25;
 			var shift = model.Montage.SynchronizationShift;
-            var patches = model.Montage.Patches.OrderBy(x => x.Begin).ToList();
+            var patches = model.Montage.Patches.Where(x => x.IsVideoPatch).OrderBy(x => x.Begin).ToList();
 			var currentChunk = chunks[0];
 			//making cross-fades and merging
 			for (int i = 0; i < chunks.Count; i++)
