@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ namespace Tuto.Navigator.Editor
 
         public PatchPanel() 
         {
+
             MouseDown += PatchPanel_MouseDown;
             MouseUp += PatchPanel_MouseUp;
             MouseMove += PatchPanel_MouseMove;
@@ -34,27 +36,51 @@ namespace Tuto.Navigator.Editor
             delete.Click += delete_Click;
             var createSubs = new MenuItem { Header = "Add subtitles" };
             createSubs.Click += AddSubtitles;
+
             var createVideo = new MenuItem { Header = "Add video" };
-            createVideo.Click += AddVideo;
-
             var createImage = new MenuItem { Header = "Add image" };
-            createImage.Click += createImage_Click;
 
+            DataContextChanged += (t, a) =>
+            {
+                fillPatchMenu(createImage, new List<string> { ".jpg", ".jpeg", ".png" }, createImage_Click);
+                fillPatchMenu(createVideo, new List<string> { ".mp4", ".avi" }, AddVideo);
+            };
+            
             forExisting = new ContextMenu { Items = { delete } };
             forEmpty = new ContextMenu { Items = { createSubs, createVideo, createImage } };
+        }
+
+        void fillPatchMenu(MenuItem menu, IEnumerable<string> extensions, RoutedEventHandler action)
+        {
+            if (editorModel != null)
+            {
+                var files = editorModel.Videotheque.PatchFolder.GetFiles()
+                    .Select(x => x.FullName)
+                    .Where(s => extensions.Any(e => s.EndsWith(e)));
+                var items = new List<MenuItem>();
+                foreach (var e in files)
+                {
+                    var item = new MenuItem() { Header = new FileInfo(e).Name };
+                    items.Add(item);
+                    item.Click += action;
+                }
+                menu.ItemsSource = items;
+            }
         }
 
         void createImage_Click(object sender, RoutedEventArgs e)
         {
             var ms = MsAtPoint(menuCalled);
-            model.Patches.Add(new Patch { Begin = ms, End = ms + 1000, Data = new ImagePatch { RelativeFilePath = "test.jpg" } });
+            var fileName = ((MenuItem)sender).Header.ToString();
+            model.Patches.Add(new Patch { Begin = ms, End = ms + 1000, Data = new ImagePatch { RelativeFilePath = fileName } });
        
         }
 
         void AddVideo(object sender, RoutedEventArgs e)
         {
             var ms = MsAtPoint(menuCalled);
-            model.Patches.Add(new Patch { Begin = ms, End = ms + 1000, Data = new VideoFilePatch { RelativeFileName = "test.mp4" } });
+            var fileName = ((MenuItem)sender).Header.ToString();
+            model.Patches.Add(new Patch { Begin = ms, End = ms + 1000, Data = new VideoFilePatch { RelativeFileName = fileName } });
         }
 
         void AddSubtitles(object sender, RoutedEventArgs e)

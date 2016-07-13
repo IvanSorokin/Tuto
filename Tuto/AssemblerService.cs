@@ -129,7 +129,9 @@ namespace Tuto.TutoServices
                 var lastActiveEndTime = chunks[chunks.Count - 2].EndTime;
                 var layer = new AvsChunk() { Chunk = new StreamChunk(patch.Begin, Math.Min(patch.End, lastActiveEndTime), Mode.Face, false) };
                 var imageFilename = new FileInfo(Path.Combine(m.Videotheque.PatchFolder.FullName, (patch.Data as ImagePatch).RelativeFilePath));
-                var imageChunk = new AvsImageChunk() {ChunkFile = imageFilename, FPS=25, Length=patch.End - patch.Begin };
+                var imageChunk = new AvsResize() {
+                    Payload = new AvsImageChunk() {ChunkFile = imageFilename, FPS=25, Length=patch.End - patch.Begin } };
+
                 tempNode.Items.Add(new AvsChunk() { Chunk = firstPart });
                 var overlay = new AvsOverlay() { First = layer, Second = imageChunk, SyncShift = syncShift };
                 tempNode.Items.Add(overlay);
