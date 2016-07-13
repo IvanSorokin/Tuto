@@ -109,8 +109,6 @@ namespace Tuto.TutoServices
                 {
                     tempNode.Items.Add(new AvsChunk() { Chunk = firstPart });
                     tempNode.Items.Add(patchNode);
-                    if (endPart.IsActive)
-                        tempNode.Items.Add(new AvsChunk() { Chunk = endPart });
                     resultNode = tempNode;
                 }
                 else
@@ -122,8 +120,6 @@ namespace Tuto.TutoServices
                     tempNode.Items.Add(new AvsChunk() { Chunk = firstPart });
                     var mix = new AvsMix() { First = patchNode, Second = layer, SyncShift = syncShift };
                     tempNode.Items.Add(mix);
-                    if (endPart.IsActive)
-                        tempNode.Items.Add(new AvsChunk() { Chunk = endPart });
                     resultNode = tempNode;
                 }
             }
@@ -138,10 +134,11 @@ namespace Tuto.TutoServices
                 tempNode.Items.Add(new AvsChunk() { Chunk = firstPart });
                 var overlay = new AvsOverlay() { First = layer, Second = imageChunk, SyncShift = syncShift };
                 tempNode.Items.Add(overlay);
-                if (endPart.IsActive)
-                    tempNode.Items.Add(new AvsChunk() { Chunk = endPart });
                 resultNode = tempNode;
             }
+
+            if (endPart.IsActive)
+                chunks.Insert(newIndex + 1, endPart);
 
             return Tuple.Create(resultNode, newIndex);
         }
@@ -162,7 +159,7 @@ namespace Tuto.TutoServices
                     var dropTimeEnd = countTime(x => x.EndTime <= sub.End && x.StartTime >= sub.Begin);
 
                     var extendedTime = patches
-                        .Where(x => x.Begin <= sub.Begin && x.VideoData.OverlayType != VideoPatchOverlayType.KeepSoundTruncateVideo)
+                        .Where(x => x.VideoData != null && x.Begin <= sub.Begin && x.VideoData.OverlayType != VideoPatchOverlayType.KeepSoundTruncateVideo)
                         .Select(x => x.VideoData.Duration - (x.End - x.Begin)).Sum();
 
                     currentSub = new AvsSub();
