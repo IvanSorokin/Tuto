@@ -97,6 +97,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblerService.cs" />
+    <Compile Include="Assembler\AvsImageChunk.cs" />
+    <Compile Include="Assembler\AvsOverlay.cs" />
     <Compile Include="BatchWorks\Converters.cs" />
     <Compile Include="BatchWorks\AtomicAssemblyEpisodeWork.cs" />
     <Compile Include="BatchWorks\AssemblyEpisodeWork.cs" />

@@ -34,7 +34,7 @@ namespace Tuto.TutoServices
 
         private bool IntersectedWithPatch(EditorModel m, StreamChunk chunk)
         {
-            var patches = m.Montage.Patches.Where(x => x.IsVideoPatch);
+            var patches = m.Montage.Patches.Where(x => x.IsVideoPatch || x.IsImagePatch);
             foreach (var e in patches)
                 if (e.Begin >= chunk.StartTime && e.Begin <= chunk.EndTime)
                     return true;
@@ -43,7 +43,6 @@ namespace Tuto.TutoServices
 
 		private Tuple<AvsNode, int> GetChainNodeAndNewIndex(int index, List<StreamChunk> initialChunks, int shift, int fps, EditorModel m)
 		{
-            //ADD PATCH CHECK INTERSECTION
 			var finalChunks = new List<StreamChunk>();
 			finalChunks.Add(initialChunks[index]);
 			for (var i = index; i < initialChunks.Count - 1; i++)
@@ -97,25 +96,43 @@ namespace Tuto.TutoServices
 
             var patchNode = new AvsPatchChunk();
             var tempNode = new AvsConcatList() { Items = new List<AvsNode>() };
-            patchNode.Load((patch.VideoData as VideoFilePatch).GetTempName(m).FullName);
 
-            if (patch.VideoData.OverlayType == VideoPatchOverlayType.Replace)
+            if (patch.IsVideoPatch)
             {
-                tempNode.Items.Add(new AvsChunk() { Chunk = firstPart });
-                tempNode.Items.Add(patchNode);
-                if (endPart.IsActive)
-                    tempNode.Items.Add(new AvsChunk() { Chunk = endPart });
-                resultNode = tempNode;
+                
+                patchNode.Load((patch.VideoData as VideoFilePatch).GetTempName(m).FullName);
+
+                if (patch.VideoData.OverlayType == VideoPatchOverlayType.Replace)
+                {
+                    tempNode.Items.Add(new AvsChunk() { Chunk = firstPart });
+                    tempNode.Items.Add(patchNode);
+                    if (endPart.IsActive)
+                        tempNode.Items.Add(new AvsChunk() { Chunk = endPart });
+                    resultNode = tempNode;
+                }
+                else
+                {
+                    var lastActiveEndTime = chunks[chunks.Count - 2].EndTime;
+                    var layer = new AvsChunk() { Chunk = new StreamChunk(patch.Begin, Math.Min(patch.End, lastActiveEndTime), Mode.Face, false) };
+                    if (patch.VideoData.OverlayType == VideoPatchOverlayType.KeepSoundTruncateVideo)
+                        patchNode.EndTime = Math.Min(patch.End, lastActiveEndTime) - patch.Begin;
+                    tempNode.Items.Add(new AvsChunk() { Chunk = firstPart });
+                    var mix = new AvsMix() { First = patchNode, Second = layer, SyncShift = syncShift };
+                    tempNode.Items.Add(mix);
+                    if (endPart.IsActive)
+                        tempNode.Items.Add(new AvsChunk() { Chunk = endPart });
+                    resultNode = tempNode;
+                }
             }
-            else
+            else //for image
             {
                 var lastActiveEndTime = chunks[chunks.Count - 2].EndTime;
                 var layer = new AvsChunk() { Chunk = new StreamChunk(patch.Begin, Math.Min(patch.End, lastActiveEndTime), Mode.Face, false) };
-                if (patch.VideoData.OverlayType == VideoPatchOverlayType.KeepSoundTruncateVideo)
-                    patchNode.EndTime = Math.Min(patch.End, lastActiveEndTime) - patch.Begin;
+                var imageFilename = new FileInfo(Path.Combine(m.Videotheque.PatchFolder.FullName, (patch.Data as ImagePatch).RelativeFilePath));
+                var imageChunk = new AvsImageChunk() {ChunkFile = imageFilename, FPS=25, Length=patch.End - patch.Begin };
                 tempNode.Items.Add(new AvsChunk() { Chunk = firstPart });
-                var mix = new AvsMix() { First = patchNode, Second = layer, SyncShift = syncShift };
-                tempNode.Items.Add(mix);
+                var overlay = new AvsOverlay() { First = layer, Second = imageChunk, SyncShift = syncShift };
+                tempNode.Items.Add(overlay);
                 if (endPart.IsActive)
                     tempNode.Items.Add(new AvsChunk() { Chunk = endPart });
                 resultNode = tempNode;
@@ -146,9 +163,9 @@ namespace Tuto.TutoServices
                     currentSub.Start = sub.Begin - dropTimeStart;
                     currentSub.End = sub.End - dropTimeEnd;
                     currentSub.Content = (sub.Data as SubtitlePatch).Text;
-                    currentSub.FontSize = "20";
-                    currentSub.Stroke = "White";
-                    currentSub.Foreground = "Black";
+                    currentSub.FontSize = "25";
+                    currentSub.Stroke = "Black";
+                    currentSub.Foreground = "White";
                     payload = currentSub;
                 }
             }
@@ -163,7 +180,8 @@ namespace Tuto.TutoServices
 			var avsChunks = new AvsConcatList { Items = new List<AvsNode>() };
 			var fps = 25;
 			var shift = model.Montage.SynchronizationShift;
-            var patches = model.Montage.Patches.Where(x => x.IsVideoPatch).OrderBy(x => x.Begin).ToList();
+
+            var patches = model.Montage.Patches.Where(x => x.IsVideoPatch || x.IsImagePatch).OrderBy(x => x.Begin).ToList();
 
 			var currentChunk = chunks[0];
 			//making cross-fades and merging
