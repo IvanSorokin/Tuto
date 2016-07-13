@@ -10,8 +10,6 @@ namespace Tuto.TutoServices.Assembler
     {
         public AvsNode Payload;
         public string Content;
-        public int X;
-        public int Y;
         public string FontSize;
         public double Start;
         public double End;
@@ -24,7 +22,7 @@ namespace Tuto.TutoServices.Assembler
             Payload.SerializeToContext(context);
             var startTime = Time2Frame(Start);
             var endTime = Time2Frame(End);
-            var script = string.Format(@"{0} = {1}.Subtitle(""{2}"", x={3}, y={4}, first_frame={5}, last_frame={6}, size={7}, text_color=color_{8}, halo_color=color_{9})", Id, Payload.Id, Content, X, Y, startTime, endTime, (int)double.Parse(FontSize), Foreground, Stroke);
+            var script = string.Format(@"{0} = {1}.Subtitle(""{2}"", first_frame={3}, align=2, last_frame={4}, size={5}, text_color=color_{6}, halo_color=color_{7})", Id, Payload.Id, Content, startTime, endTime, (int)double.Parse(FontSize), Foreground, Stroke);
             context.AddData(script);
         }
 

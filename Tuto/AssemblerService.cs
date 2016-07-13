@@ -146,7 +146,7 @@ namespace Tuto.TutoServices
             return Tuple.Create(resultNode, newIndex);
         }
 
-        private void ApplySubtitles(EditorModel m, AvsContext context, AvsNode payload, List<StreamChunk> chunks)
+        private void ApplySubtitles(EditorModel m, AvsContext context, AvsNode payload, List<StreamChunk> chunks, List<Patch> patches)
         {
             Func<Func<StreamChunk,bool>,double> countTime = f => chunks
                         .Where(x => x.Mode == Mode.Drop && f(x))
@@ -161,14 +161,16 @@ namespace Tuto.TutoServices
                     var dropTimeStart = countTime(x => x.EndTime <= sub.Begin);
                     var dropTimeEnd = countTime(x => x.EndTime <= sub.End && x.StartTime >= sub.Begin);
 
+                    var extendedTime = patches
+                        .Where(x => x.Begin <= sub.Begin && x.VideoData.OverlayType != VideoPatchOverlayType.KeepSoundTruncateVideo)
+                        .Select(x => x.VideoData.Duration - (x.End - x.Begin)).Sum();
+
                     currentSub = new AvsSub();
                     currentSub.Payload = payload;
-                    currentSub.X = 0;
-                    currentSub.Y = 0;
-                    currentSub.Start = sub.Begin - dropTimeStart;
-                    currentSub.End = sub.End - dropTimeEnd;
+                    currentSub.Start = sub.Begin - dropTimeStart + extendedTime;
+                    currentSub.End = sub.End - dropTimeEnd + extendedTime;
                     currentSub.Content = (sub.Data as SubtitlePatch).Text;
-                    currentSub.FontSize = "25";
+                    currentSub.FontSize = "30";
                     currentSub.Stroke = "Black";
                     currentSub.Foreground = "White";
                     payload = currentSub;
@@ -187,6 +189,7 @@ namespace Tuto.TutoServices
 			var shift = model.Montage.SynchronizationShift;
 
             var patches = model.Montage.Patches.Where(x => x.IsVideoPatch || x.IsImagePatch).OrderBy(x => x.Begin).ToList();
+            var patchesForSubs = patches.ToList();
 
 			var currentChunk = chunks[0];
 			//making cross-fades and merging
@@ -242,7 +245,7 @@ namespace Tuto.TutoServices
             var hasSubtitles = model.Montage.Patches.Any(x => (x.Data as SubtitlePatch) != null);
             if (hasSubtitles)
             {
-               ApplySubtitles(model, avsContext, avsChunks, chunks);
+               ApplySubtitles(model, avsContext, avsChunks, chunks, patchesForSubs);
             }
             else
                 avsChunks.SerializeToContext(avsContext);
