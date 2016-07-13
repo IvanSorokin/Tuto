@@ -53,7 +53,11 @@ namespace Tuto.Model
 
         public override FileInfo GetFileName(Videotheque v)
         {
-            throw new NotImplementedException();
+            EditorModel model = null;
+            foreach (var e in v.EditorModels)
+                if (e.Montage.Information.Episodes.Any(x => x.Guid == Guid))
+                    model = e;
+            return model.Locations.GetOutputFile(model.Montage.Information.Episodes.First(x => x.Guid == Guid));
         }
     }
 }

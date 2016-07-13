@@ -42,51 +42,83 @@ namespace Tuto.Navigator.Editor
 
             DataContextChanged += (t, a) =>
             {
-                fillPatchMenu(createImage, new List<string> { ".jpg", ".jpeg", ".png" }, createImage_Click);
-                fillPatchMenu(createVideo, new List<string> { ".mp4", ".avi" }, AddVideo);
+                fillPatchMenu(createImage, new List<string> { ".jpg", ".jpeg", ".png" }, createImage_Click, false);
+                fillPatchMenu(createVideo, new List<string> { ".mp4", ".avi" }, AddVideo, true);
             };
             
             forExisting = new ContextMenu { Items = { delete } };
             forEmpty = new ContextMenu { Items = { createSubs, createVideo, createImage } };
         }
 
-        void fillPatchMenu(MenuItem menu, IEnumerable<string> extensions, RoutedEventHandler action)
+        void fillPatchMenu(MenuItem menu, IEnumerable<string> extensions, RoutedEventHandler action, bool includeTutoPatches)
         {
             if (editorModel != null)
             {
                 var files = editorModel.Videotheque.PatchFolder.GetFiles()
                     .Select(x => x.FullName)
                     .Where(s => extensions.Any(e => s.EndsWith(e)));
-                var items = new List<MenuItem>();
+                var menuItems = new List<MenuItem>();
                 foreach (var e in files)
                 {
                     var item = new MenuItem() { Header = new FileInfo(e).Name };
-                    items.Add(item);
+                    item.Tag = item.Header;
+                    menuItems.Add(item);
                     item.Click += action;
                 }
-                menu.ItemsSource = items;
+
+                if (includeTutoPatches)
+                {
+                    var tutoPatches = editorModel.Videotheque.EditorModels
+                        .Select(x => x.Montage.Information.Episodes)
+                        .SelectMany(x => x).Where(x => x.OutputType == OutputTypes.Patch).ToList();
+                    foreach (var e in tutoPatches)
+                    {
+                        var item = new MenuItem() { Header = e.Name + ".avi" };
+                        var tutoPatch = new TutoPatch() { Guid = e.Guid };
+                        item.Tag = tutoPatch;
+
+                        if (tutoPatch.GetFileName(editorModel.Videotheque).Exists)
+                        {
+                            item.Click += AddTutoPatch;
+                        }
+                        else
+                        {
+                            item.Foreground = Brushes.Red;
+                            item.Click += (x, z) => { MessageBox.Show("Assemble patch please."); };
+                        }
+                        menuItems.Add(item);
+                    }
+                }
+
+                menu.ItemsSource = menuItems;
             }
         }
 
         void createImage_Click(object sender, RoutedEventArgs e)
         {
             var ms = MsAtPoint(menuCalled);
-            var fileName = ((MenuItem)sender).Header.ToString();
+            var fileName = ((MenuItem)sender).Tag.ToString();
             model.Patches.Add(new Patch { Begin = ms, End = ms + 1000, Data = new ImagePatch { RelativeFilePath = fileName } });
        
+        }
+
+        void AddTutoPatch(object sender, RoutedEventArgs e)
+        {
+            var ms = MsAtPoint(menuCalled);
+            model.Patches.Add(new Patch { Begin = ms, End = ms + 1000, Data = ((MenuItem)sender).Tag as TutoPatch });
         }
 
         void AddVideo(object sender, RoutedEventArgs e)
         {
             var ms = MsAtPoint(menuCalled);
-            var fileName = ((MenuItem)sender).Header.ToString();
+            var fileName = ((MenuItem)sender).Tag.ToString();
             model.Patches.Add(new Patch { Begin = ms, End = ms + 1000, Data = new VideoFilePatch { RelativeFileName = fileName } });
         }
 
         void AddSubtitles(object sender, RoutedEventArgs e)
         {
             var ms = MsAtPoint(menuCalled);
-            model.Patches.Add(new Patch { Begin = ms, End = ms + 1000, Data = new SubtitlePatch { Text = "AAAAAAAAA!" } });
+            model.Patches.Add(new Patch { Begin = ms, End = ms + 1000, Data = new SubtitlePatch { Text = "Sample Text" } });
         }
 
         void delete_Click(object sender, RoutedEventArgs e)

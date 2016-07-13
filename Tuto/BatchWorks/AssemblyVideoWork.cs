@@ -19,7 +19,7 @@ namespace Tuto.BatchWorks
             var service = new AssemblerService(model.Videotheque.Data.EditorSettings.CrossFadesEnabled);
             var episodes = model.Montage.Information.Episodes;
 
-            Model.Montage.Patches.Where(x => x.IsVideoPatch).ToList().ForEach(x => {
+            Model.Montage.Patches.Where(x => x.IsVideoPatch && !(x.Data is TutoPatch)).ToList().ForEach(x => {
             var work = new ConvertPatchWork(model, false, x);
             if (!work.Finished())
                 Tasks.Add(work);

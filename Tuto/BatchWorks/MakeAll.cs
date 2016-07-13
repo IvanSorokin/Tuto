@@ -36,7 +36,6 @@ namespace Tuto.BatchWorks
                 if (model.Montage.Information.Episodes[episodeNumber].OutputType == OutputTypes.Patch)
                     continue;
 
-                
                 var task = new MoveFile(from, to, model);
 
                 videoWork.Tasks.Select(x => x as AssemblyEpisodeWork).First(x => x.EpisodeNumber == episodeNumber).Tasks.Add(task);

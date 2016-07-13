@@ -99,8 +99,11 @@ namespace Tuto.TutoServices
 
             if (patch.IsVideoPatch)
             {
-                
-                patchNode.Load((patch.VideoData as VideoFilePatch).GetTempName(m).FullName);
+
+                if (patch.VideoData is TutoPatch)
+                    patchNode.Load((patch.VideoData as TutoPatch).GetFileName(m.Videotheque).FullName);
+                else
+                    patchNode.Load((patch.VideoData as VideoFilePatch).GetTempName(m).FullName);
 
                 if (patch.VideoData.OverlayType == VideoPatchOverlayType.Replace)
                 {
