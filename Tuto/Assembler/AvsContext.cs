@@ -27,7 +27,7 @@ namespace Tuto.TutoServices.Assembler
                 faceFormat = withoutReduction;
             return string.Format(Format,
                 model.Locations.AvsLibrary.FullName,
-                model.Locations.AutoLevelsLibrary.FullName,
+                model.Locations.VSFilterLibrary.FullName,
                 model.Locations.VSFilterLibrary.FullName,
                 internalData,
                 String.Format(AvsNode.Template, 0),
@@ -47,6 +47,7 @@ namespace Tuto.TutoServices.Assembler
         private int id = -1;
         private const string Format =
 @"import(""{0}"")
+Loadplugin (""{1}"")
 {5}
 desktop = DirectShowSource(""{6}"").ChangeFPS(25)
 {3}

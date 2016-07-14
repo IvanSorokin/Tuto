@@ -61,8 +61,8 @@ namespace Tuto.Model
         public FileInfo FFmpegExecutable { get { return model.Videotheque.Locations.FFmpegExecutable; } }
         [Obsolete]
         public FileInfo SoxExecutable { get { return model.Videotheque.Locations.SoxExecutable; } }
-        [Obsolete]
-        public FileInfo VSFilterLibrary { get { return new FileInfo(@"C:\Program Files\VSFilter\VSFilter.dll"); } }
+
+        public FileInfo VSFilterLibrary { get { return Make(model.Videotheque.ProgramFolder, "VSFilter.dll") ; } }
 
         [Obsolete]
         public FileInfo TutoExecutable { get { return Make(model.Videotheque.ProgramFolder, "Tuto.exe"); } }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
+using System.Text;
 using Tuto.Model;
 using Tuto.TutoServices.Assembler;
 
@@ -150,7 +150,18 @@ namespace Tuto.TutoServices
                         .Select(x => x.Length)
                         .Sum();
 
-            var currentSub = new AvsSub();
+            Func<string, string> roundTimeSpan = (string s) => 
+            {
+                var c = s.Split('.');
+                return c[0] + "." + c[1][0];
+            };
+
+            var avsSub = new AvsSub();
+            avsSub.Payload = payload;
+            var pattern = "Dialogue: Marked = 0,{0},{1},IDefault,,0000,0000,0000,,{2}";
+
+            var sampleSub = File.ReadAllLines("SubPattern.ssa").ToList();
+
             foreach (var sub in m.Montage.Patches)
             {
                 if (sub.Data as SubtitlePatch != null)
@@ -162,18 +173,19 @@ namespace Tuto.TutoServices
                         .Where(x => x.VideoData != null && x.Begin <= sub.Begin && x.VideoData.OverlayType != VideoPatchOverlayType.KeepSoundTruncateVideo)
                         .Select(x => x.VideoData.Duration - (x.End - x.Begin)).Sum();
 
-                    currentSub = new AvsSub();
-                    currentSub.Payload = payload;
-                    currentSub.Start = sub.Begin - dropTimeStart + extendedTime;
-                    currentSub.End = sub.End - dropTimeEnd + extendedTime;
-                    currentSub.Content = (sub.Data as SubtitlePatch).Text;
-                    currentSub.FontSize = "30";
-                    currentSub.Stroke = "Black";
-                    currentSub.Foreground = "White";
-                    payload = currentSub;
+
+                    var startTime = TimeSpan.FromMilliseconds(sub.Begin - dropTimeStart + extendedTime).ToString();
+                    var endTime = TimeSpan.FromMilliseconds(sub.End - dropTimeStart - dropTimeEnd + extendedTime).ToString();
+                    var content = (sub.Data as SubtitlePatch).Text;
+
+                    sampleSub.Add(string.Format(pattern, roundTimeSpan(startTime), roundTimeSpan(endTime), content));
                 }
             }
-            currentSub.SerializeToContext(context);
+                var subName = Path.Combine(m.TempFolder.FullName, "sub.ssa");
+                avsSub.Filename = subName;
+                File.WriteAllLines(subName, sampleSub, new UTF8Encoding(true));
+                avsSub.SerializeToContext(context);
+            
         }
 
         private bool UseChainProcessing = true;

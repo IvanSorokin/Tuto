@@ -101,15 +101,7 @@ namespace Tuto.BatchWorks
                 var currentSub = new AvsSub();
                 foreach (var sub in pmodel.Subtitles)
                 {
-                    currentSub = new AvsSub();
-                    currentSub.Payload = payload;
-                    currentSub.Start = sub.LeftShiftInSeconds;
-                    currentSub.End = sub.LeftShiftInSeconds + sub.EndSecond - sub.StartSecond;
-                    currentSub.Content = sub.Content;
-                    currentSub.FontSize = (sub.FontSize * pmodel.FontCoefficent).ToString();
-                    currentSub.Stroke = sub.Stroke;
-                    currentSub.Foreground = sub.Foreground;
-                    payload = currentSub;
+
                 }
                 currentSub.SerializeToContext(avsContext);
             }
