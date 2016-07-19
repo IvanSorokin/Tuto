@@ -38,5 +38,10 @@ namespace Tuto.BatchWorks
             Name = "Assembling episode: " + episodeInfo.Name;
             Tasks.Add(task);
         }
+
+        public bool IsAssembled()
+        {
+            return Model.Locations.GetOutputFile(EpisodeNumber).Exists;
+        }
     }
 }

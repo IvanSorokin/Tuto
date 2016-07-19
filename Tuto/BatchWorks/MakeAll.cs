@@ -41,7 +41,7 @@ namespace Tuto.BatchWorks
                 videoWork.Tasks
                     .Where(x => x is AssemblyEpisodeWork)
                     .Select(x => x as AssemblyEpisodeWork)
-                    .First(x => x.EpisodeNumber == episodeNumber).Tasks.Add(task);
+                    .First(x => x.EpisodeNumber == episodeNumber && x.Model == model).Tasks.Add(task);
             }
         }
     }
