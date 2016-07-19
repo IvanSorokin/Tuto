@@ -29,7 +29,7 @@ namespace Tuto.BatchWorks
 
             if (!File.Exists(Source.FullName))
                 throw new ArgumentException(Source.FullName + " not found");      
-            var args = string.Format(@"-i ""{0}"" -vf ""scale=1280:720, fps=25"" -q:v 0 -acodec libmp3lame -ar 44100 -ab 32k ""{1}"" -y",
+            var args = string.Format(@"-i ""{0}"" -vf ""scale=1280:720, fps=25"" -q:v 0 -acodec libmp3lame -ar 44100 -ab 32k -ac 2 ""{1}"" -y",
                    Source.FullName, TempFile.FullName);
             var fullPath = Model.Videotheque.Locations.FFmpegExecutable;
             RunProcess(args, fullPath.FullName);

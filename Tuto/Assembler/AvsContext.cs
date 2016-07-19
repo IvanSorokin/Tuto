@@ -25,6 +25,10 @@ namespace Tuto.TutoServices.Assembler
                 faceFormat = withReduction;
             else
                 faceFormat = withoutReduction;
+
+            var desktopFormat = string.Format(@"desktop = DirectShowSource(""{0}"").ChangeFPS(25)", model.Locations.ConvertedDesktopVideo.FullName);
+            var desktopHeader = model.Locations.ConvertedDesktopVideo.Exists ? desktopFormat : "";
+
             return string.Format(Format,
                 model.Locations.AvsLibrary.FullName,
                 model.Locations.VSFilterLibrary.FullName,
@@ -32,7 +36,7 @@ namespace Tuto.TutoServices.Assembler
                 internalData,
                 String.Format(AvsNode.Template, 0),
                 faceFormat,
-                model.Locations.ConvertedDesktopVideo.FullName); 
+                desktopHeader); 
         }
 
        public string GetContent()
@@ -49,7 +53,7 @@ namespace Tuto.TutoServices.Assembler
 @"import(""{0}"")
 Loadplugin (""{1}"")
 {5}
-desktop = DirectShowSource(""{6}"").ChangeFPS(25)
+{6}
 {3}
 return {4}";
 

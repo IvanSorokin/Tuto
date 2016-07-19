@@ -38,7 +38,10 @@ namespace Tuto.BatchWorks
 
                 var task = new MoveFile(from, to, model);
 
-                videoWork.Tasks.Select(x => x as AssemblyEpisodeWork).First(x => x.EpisodeNumber == episodeNumber).Tasks.Add(task);
+                videoWork.Tasks
+                    .Where(x => x is AssemblyEpisodeWork)
+                    .Select(x => x as AssemblyEpisodeWork)
+                    .First(x => x.EpisodeNumber == episodeNumber).Tasks.Add(task);
             }
         }
     }
