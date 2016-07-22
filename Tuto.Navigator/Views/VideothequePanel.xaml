@@ -18,10 +18,8 @@
                 <StackPanel Orientation="Vertical" Name="BatchWithOptions">
                     <CheckBox Content="Create face thumb" IsChecked="{Binding PreWorks.FaceThumb}"></CheckBox>
                     <CheckBox Content="Create desktop thumb" IsChecked="{Binding PreWorks.DesktopThumb}" ></CheckBox>
-                    <CheckBox Content="Clear sound" IsChecked="{Binding PreWorks.CleanSound}"></CheckBox>
+                    <CheckBox Content="Clean sound" IsChecked="{Binding PreWorks.CleanSound}"></CheckBox>
                     <CheckBox Content="Convert" IsChecked="{Binding PreWorks.ConvertNeeded}"></CheckBox>
-                    <CheckBox Content="Repair face video" IsChecked="{Binding PreWorks.RepairFace}"></CheckBox>
-                    <CheckBox Content="Repair desktop video" IsChecked="{Binding PreWorks.RepairDesktop}"></CheckBox>
                     <CheckBox Content="Assemble result" IsChecked="{Binding PreWorks.AssemblyNeeded}"></CheckBox>
                     <CheckBox Content="Make all works" IsChecked="{Binding PreWorks.All}"></CheckBox>
                     <Button Content="Do works" Width="60" Command="{Binding AssembleSelectedWithOptionsCommand}"/>

@@ -120,7 +120,6 @@
     <Compile Include="BatchWorks\PreparePatchWork.cs" />
     <Compile Include="BatchWorks\FFmpegWork.cs" />
     <Compile Include="BatchWorks\ProcessBatchWork.cs" />
-    <Compile Include="BatchWorks\RepairVideoWork.cs" />
     <Compile Include="BatchWorks\WorkQueue.cs" />
     <Compile Include="ConsoleMode\ConsoleLoadingUI.cs" />
     <Compile Include="ConsoleMode\Tuto.Program.cs" />

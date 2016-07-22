@@ -18,6 +18,7 @@ namespace Tuto.Navigator.ViewModels
     public class VideoViewModel : NotifierModel
     {
         public EditorModel Model { get; private set; }
+        
 
         public event Action<VideoViewModel> OpenMe;
         public event Action Back;

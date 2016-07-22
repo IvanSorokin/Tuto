@@ -42,6 +42,13 @@ namespace Tuto.Model
             this.Guid = guid;
         }
 
+        public EpisodInfo(Guid guid, string name)
+        {
+            OutputType = OutputTypes.Output;
+            this.Guid = guid;
+            this.Name = name;
+        }
+
         public override bool Equals(object obj)
         {
             var item = (EpisodInfo)obj;

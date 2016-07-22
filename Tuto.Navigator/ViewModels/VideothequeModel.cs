@@ -67,8 +67,7 @@ namespace Tuto.Navigator.ViewModels
 
             AssembleSelectedCommand = new RelayCommand(AssembleSelected, somethingSelected);
             AssembleSelectedWithOptionsCommand = new RelayCommand(AssembleWithOptions, somethingSelected);
-            RemontageSelectedCommand = new RelayCommand(MontageSelected, somethingSelected);
-			RepairFaceSelectedCommand = new RelayCommand(RepairFaceSelected, somethingSelected);				 
+            RemontageSelectedCommand = new RelayCommand(MontageSelected, somethingSelected);			 
             
             UploadSelectedClipsCommand = new RelayCommand(UploadClips);
         }
@@ -222,15 +221,6 @@ namespace Tuto.Navigator.ViewModels
             Run(true);
         }
 
-		public void RepairFaceSelected()
-		{
-            var work = Subdirectories.Where(z => z.Selected);
-            var models = work.Select(x => x.Model);
-            var tasks = models.Select(x =>
-                new RepairVideoWork(x, x.Locations.FaceVideo, true)).ToList();
-            Program.WorkQueue.Run(tasks);
-		}
-
 
         #region commands
 
@@ -239,7 +229,6 @@ namespace Tuto.Navigator.ViewModels
         public RelayCommand AssembleSelectedCommand { get; private set; }
         public RelayCommand AssembleSelectedWithOptionsCommand { get; private set; }
         public RelayCommand RemontageSelectedCommand { get; private set; }
-		public RelayCommand RepairFaceSelectedCommand { get; private set; }
         public RelayCommand UploadSelectedClipsCommand { get; private set; }
         public RelayCommand CreateBackupCommand { get; private set; }
         #endregion

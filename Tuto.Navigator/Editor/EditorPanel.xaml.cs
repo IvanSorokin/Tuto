@@ -16,12 +16,10 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Tuto.Model;
+using Tuto.BatchWorks;
 
 namespace Tuto.Navigator.Editor
 {
-
-	 
-
     /// <summary>
     /// Interaction logic for EditorPanel.xaml
     /// </summary>
@@ -34,22 +32,13 @@ namespace Tuto.Navigator.Editor
             InitializeComponent();
             DataContextChanged += EditorPanel_DataContextChanged;
 
-            Func<bool> areEpisodesNamed = () => { return model.Montage.Information.Episodes.Count(x => x.Name == "") == 0; };
-            Action requestEpisodeNames = () =>
-            {
-                MessageBox.Show("Please, fill episodes info.");
-                titles_Click("", null);
-            };
-
 			backButton.Click += (s, a) =>
 				{
 					if (model != null)
 					{
-						model.Save();
-                        if (!areEpisodesNamed())
-                            requestEpisodeNames();
-                        else
-                            model.WindowState.OnGetBack();
+                        formEpisodes();
+                        model.Save();
+                        model.WindowState.OnGetBack();
 					}
 						
 				};
@@ -91,14 +80,22 @@ namespace Tuto.Navigator.Editor
                     if (model != null) model.WindowState.CurrentMode = EditorModes.Patch;
                 };
 
+            makeall.Click += (s, a) =>
+            {
+                formEpisodes();
+                Program.WorkQueue.Run(new MakeAll(model));
+            };
+            
+            
 			titles.Click += titles_Click;
 			sync.Click += sync_Click;
         }
 
 	
-		void titles_Click(object sender, RoutedEventArgs e)
-		{
-	        var times = new List<int>();
+        void formEpisodes()
+        {
+            if (model == null) return;
+            var times = new List<int>();
             var current = 0;
             foreach (var c in model.Montage.Chunks)
             {
@@ -113,22 +110,26 @@ namespace Tuto.Navigator.Editor
             times.Add(current);
             if (model.Montage.Information.Episodes.Count == 0)
             {
-                model.Montage.Information.Episodes.AddRange(Enumerable.Range(0, times.Count).Select(z => new EpisodInfo(Guid.NewGuid())));
+                model.Montage.Information.Episodes.AddRange(Enumerable.Range(0, times.Count).Select(z => new EpisodInfo(Guid.NewGuid(), "Episode " + z)));
             }
             else if (model.Montage.Information.Episodes.Count != times.Count)
             {
                 while (model.Montage.Information.Episodes.Count > times.Count)
                     model.Montage.Information.Episodes.RemoveAt(model.Montage.Information.Episodes.Count - 1);
+                var index = model.Montage.Information.Episodes.Count;
                 while (model.Montage.Information.Episodes.Count < times.Count)
-                    model.Montage.Information.Episodes.Add(new EpisodInfo(Guid.NewGuid()));
+                    model.Montage.Information.Episodes.Add(new EpisodInfo(Guid.NewGuid(), "Episode " + index++));
             }
 
             for (int i = 0; i < times.Count; i++)
             {
                 model.Montage.Information.Episodes[i].Duration = TimeSpan.FromMilliseconds(times[i]);
             }
+        }
 
-
+		void titles_Click(object sender, RoutedEventArgs e)
+		{
+            formEpisodes();
             var wnd = new InfoWindow();
             wnd.DataContext = model.Montage.Information;
             wnd.ShowDialog();
@@ -140,6 +141,7 @@ namespace Tuto.Navigator.Editor
         {
 			if (controller != null)
 			{
+                formEpisodes();
 				controller.Dispose();
 			}
 			if (model!=null)
@@ -156,6 +158,7 @@ namespace Tuto.Navigator.Editor
 				CheckMode();
 				player.Focus();
             }
+
         }
 
 		void PlayPause()

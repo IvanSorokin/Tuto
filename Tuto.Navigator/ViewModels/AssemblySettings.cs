@@ -16,9 +16,6 @@ namespace Tuto.Navigator.ViewModels
         public bool DesktopThumb { get; set; }
         public bool ConvertNeeded { get; set; }
 
-        public bool RepairFace { get; set; }
-        public bool RepairDesktop { get; set; }
-
         public bool AssemblyNeeded { get; set; }
         public bool CleanSound { get; set; }
         public bool UploadSelected { get; set; }
@@ -30,10 +27,6 @@ namespace Tuto.Navigator.ViewModels
             var tasks = new List<BatchWork>();
             if (!All)
             {
-                if (RepairDesktop)
-                    tasks.Add(new RepairVideoWork(m, m.Locations.DesktopVideo, true));
-                if (RepairFace)
-                    tasks.Add(new RepairVideoWork(m, m.Locations.FaceVideo, true));
                 if (FaceThumb)
                     tasks.Add(new CreateThumbWork(m.Locations.FaceVideo, m, true));
                 if (DesktopThumb)

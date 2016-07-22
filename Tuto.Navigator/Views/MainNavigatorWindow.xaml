@@ -11,6 +11,7 @@
     </Window.Resources>
     <DockPanel>
         <views:BatchWorkPanel 
+            x:Name="QueuePanel"
             DataContext="{Binding Queue}" 
             DockPanel.Dock="Bottom"/>
         <Grid>

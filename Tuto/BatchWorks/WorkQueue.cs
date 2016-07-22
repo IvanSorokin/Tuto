@@ -127,7 +127,7 @@ namespace Tuto.BatchWorks
                 Run(e);
         }
 
-        public void UnpackWork(BatchWork work)
+        private void UnpackWork(BatchWork work)
         {
             if (work is CompositeWork)
             {
@@ -135,7 +135,7 @@ namespace Tuto.BatchWorks
             }
         }
 
-        public void AddNode(BatchWork work, BatchWork parent)
+        private void AddNode(BatchWork work, BatchWork parent)
         {
             if (!ShouldWeDoThisWork(work))
                 return;
