@@ -413,6 +413,7 @@
     <Resource Include="Icons\hammer.png" />
     <Resource Include="Icons\microscope.png" />
     <Resource Include="Icons\patch.png" />
+    <Resource Include="Icons\resetspeed.png" />
     <Content Include="NoiseReduction\cleared.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

@@ -43,6 +43,11 @@ namespace Tuto.Navigator.Editor
 						
 				};
 
+            resetSpeed.Click += (s, a) =>
+            {
+                model.WindowState.SpeedRatio = 1;
+            };
+
 			help.Click += (s, a) =>
 				{
 					var data = HelpCreator.CreateModeHelp();

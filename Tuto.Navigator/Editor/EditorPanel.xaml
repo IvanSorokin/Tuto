@@ -36,7 +36,11 @@
                 <Image Source="/Icons/pause.png"/>
             </ToggleButton>
 
+            <Button x:Name="resetSpeed" ToolTip="Reset speed ratio">
+                <Image Source="/Icons/resetspeed.png"/>
+            </Button>
             <Rectangle Height="20"/>
+            
             <ToggleButton x:Name="previewMode" ToolTip="Mode for rough markup of the video">
                 <Image Source="/Icons/hammer.png"/>
             </ToggleButton>
